@@ -9,6 +9,7 @@ public class Marching : MonoBehaviour
 	List<int> triangles = new List<int>();
 
 	MeshFilter meshFilter;
+	MeshCollider meshCollider;
 
 	float terrainSurface = 0.5f;
 	int width = 32;
@@ -20,6 +21,9 @@ public class Marching : MonoBehaviour
 	private void Start()
 	{
 		meshFilter = GetComponent<MeshFilter>();
+		meshCollider = GetComponent<MeshCollider>();
+		transform.tag = "Terrain";
+
 		terrainMap = new float[width + 1, height + 1, width + 1];
 
 		GenerateTerrainMapData();
@@ -42,18 +46,7 @@ public class Marching : MonoBehaviour
 				{
 					float thisHeight = (float)height * Mathf.PerlinNoise((float)x / 16f * 1.5f + 0.001f, (float)z / 16f * 1.5f + 0.001f);
 
-					float point = 0;
-
-					if (y <= thisHeight - 0.5f)
-						point = 0f;
-					else if (y > thisHeight + 0.5)
-						point = 1f;
-					else if (y > thisHeight)
-						point = (float)y - thisHeight;
-					else
-						point = thisHeight - (float)y;
-
-					terrainMap[x, y, z] = point;
+					terrainMap[x, y, z] = (float)y - thisHeight;
 				}
 			}
 
@@ -68,14 +61,7 @@ public class Marching : MonoBehaviour
 			{
 				for (int z = 0; z < width; z++)
 				{
-					float[] cube = new float[8];
-					for(int i = 0; i < 8; i++)
-					{
-						Vector3Int corner = new Vector3Int(x, y, z) + CornerTable[i];
-						cube[i] = terrainMap[corner.x, corner.y, corner.z];
-					}
-
-					MarchCube(new Vector3(x, y, z), cube);
+					MarchCube(new Vector3Int(x, y, z));
 				}
 			}
 		}
@@ -93,8 +79,19 @@ public class Marching : MonoBehaviour
 		return configurationIndex;
 	}
 
-	void MarchCube(Vector3 position, float[] cube)
+	float SampleTerrain(Vector3Int point)
 	{
+		return terrainMap[point.x, point.y, point.z];
+	}
+
+	void MarchCube(Vector3Int position)
+	{
+		float[] cube = new float[8];
+		for (int i = 0; i < 8; i++)
+		{
+			cube[i] = SampleTerrain(position + CornerTable[i]);
+		}
+
 		int configurationIndex = GetCubeConfiguration(cube);
 
 		// Below Terrain or completly outside (Air)
@@ -111,8 +108,8 @@ public class Marching : MonoBehaviour
 				if (indice == -1)
 					return;
 
-				Vector3 vert1 = position + EdgeTable[indice, 0];
-				Vector3 vert2 = position + EdgeTable[indice, 1];
+				Vector3 vert1 = position + CornerTable[EdgeTable[indice, 0]];
+				Vector3 vert2 = position + CornerTable[EdgeTable[indice, 1]];
 
 				Vector3 vertPosition = (vert1 + vert2) / 2f;
 
@@ -137,6 +134,7 @@ public class Marching : MonoBehaviour
 		mesh.triangles = triangles.ToArray();
 		mesh.RecalculateNormals();
 		meshFilter.mesh = mesh;
+		meshCollider.sharedMesh = mesh;
 	}
 
 	// Corner of the cube
@@ -152,20 +150,9 @@ public class Marching : MonoBehaviour
     };
 
 	// Edges of the cube
-	Vector3[,] EdgeTable = new Vector3[12, 2] {
+	int[,] EdgeTable = new int[12, 2] {
 
-		{ new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f) },
-		{ new Vector3(1.0f, 0.0f, 0.0f), new Vector3(1.0f, 1.0f, 0.0f) },
-		{ new Vector3(0.0f, 1.0f, 0.0f), new Vector3(1.0f, 1.0f, 0.0f) },
-		{ new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f) },
-		{ new Vector3(0.0f, 0.0f, 1.0f), new Vector3(1.0f, 0.0f, 1.0f) },
-		{ new Vector3(1.0f, 0.0f, 1.0f), new Vector3(1.0f, 1.0f, 1.0f) },
-		{ new Vector3(0.0f, 1.0f, 1.0f), new Vector3(1.0f, 1.0f, 1.0f) },
-		{ new Vector3(0.0f, 0.0f, 1.0f), new Vector3(0.0f, 1.0f, 1.0f) },
-		{ new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 0.0f, 1.0f) },
-		{ new Vector3(1.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 1.0f) },
-		{ new Vector3(1.0f, 1.0f, 0.0f), new Vector3(1.0f, 1.0f, 1.0f) },
-		{ new Vector3(0.0f, 1.0f, 0.0f), new Vector3(0.0f, 1.0f, 1.0f) }
+		{0, 1}, {1, 2}, {3, 2}, {0, 3}, {4, 5}, {5, 6}, {7, 6}, {4, 7}, {0, 4}, {1, 5}, {2, 6}, {3, 7}
 
 	};
 
