@@ -53,6 +53,22 @@ public class Chunk
 		return terrainMap;
 	}
 
+	public void changeTerrain(Vector3 pos, float amount)
+	{
+		pos = pos - chunkPosition;
+		Vector3Int posInt= new Vector3Int(Mathf.CeilToInt(pos.x), Mathf.CeilToInt(pos.y), Mathf.CeilToInt(pos.z));
+
+		Debug.Log(pos);
+		terrainMap[posInt.x, posInt.y, posInt.z] = amount;
+		UpdateChunk();
+	}
+
+	public void UpdateChunk()
+	{
+		CreateMeshData();
+		BuildMesh();
+	}
+
 	private void GenerateTerrainMapData()
 	{
 		for (int x = 0; x <= width; x++)
@@ -171,6 +187,12 @@ public class Chunk
 		mesh.RecalculateNormals();
 		meshFilter.mesh = mesh;
 		meshCollider.sharedMesh = mesh;
+	}
+
+	override
+	public string ToString()
+	{
+		return chunkObject.transform.name + " " + chunkPosition;
 	}
 
 }

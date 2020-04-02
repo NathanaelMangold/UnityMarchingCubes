@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class WorldGenerator : MonoBehaviour
 {
-    int chunkCount = 5;
+    int chunkCount = 4;
 
     Dictionary<Vector3Int, Chunk> chunks = new Dictionary<Vector3Int, Chunk>();
 
@@ -19,6 +19,16 @@ public class WorldGenerator : MonoBehaviour
     public Transform getChunkHolder()
     {
         return chunkHolder;
+    }
+
+    public Chunk getChunkEstimatePosition(Vector3 pos)
+    {
+        int chunkWidth = GameData.ChunkWidth;
+        int x = ((int)pos.x / chunkWidth) * 16;
+        int y = 0; //(int)pos.y / chunkWidth;
+        int z = ((int)pos.z / chunkWidth) * 16;
+
+        return chunks[new Vector3Int(x, y, z)];
     }
 
     public Chunk getChunk(Vector3 pos)
