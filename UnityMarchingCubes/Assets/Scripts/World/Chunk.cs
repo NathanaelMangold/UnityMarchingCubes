@@ -117,7 +117,7 @@ public class Chunk
 	}
 
 	// Gibt Wert an der der Position zurück
-	float SampleTerrain(Vector3Int point)
+	public float SampleTerrain(Vector3Int point)
 	{
 		return terrainMap[point.x, point.y, point.z];
 	}
