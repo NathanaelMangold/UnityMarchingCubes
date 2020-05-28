@@ -1,2 +1,4 @@
 # UnityMarchingCubes
-Unity Marching Cubes Implementation
+Unity Marching Cubes Implementation. Still WIP!
+
+![Terrain IMG](Terrain.PNG)
